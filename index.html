@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#0E1A33">
+  <meta
+    name="description"
+    content="QWAR — Siapa Cepat, Dia Bertanya. Sistem Q&A interaktif untuk presentasi."
+  >
+  <meta name="robots" content="index, follow">
+
+  <title>QWAR — Siapa Cepat, Dia Bertanya</title>
+
+  <!-- =========================================================
+       FAVICON
+       =========================================================
+       Simpan logo QWAR Anda di:
+
+       assets/qwar-logo.png
+
+       Jangan gunakan:
+       https://drive.google.com/file/d/.../view
+
+       karena itu adalah halaman Google Drive, bukan direct image.
+  ========================================================== -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="assets/qwar-logo.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="192x192"
+    href="assets/qwar-logo.png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/qwar-logo.png"
+  >
+
+  <style>
+    :root {
+      --navy-900: #0E1A33;
+      --navy-800: #16274A;
+      --navy-700: #1E315A;
+      --gold: #E4B73F;
+      --gold-dark: #B5902C;
+      --bg: #0B1327;
+      --app-bg: #EEF1F8;
+      --white: #FFFFFF;
+      --muted: #AAB4CB;
+      --danger: #FF6767;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      min-height: 100vh;
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          #2B4470 0%,
+          #0B1327 58%
+        );
+
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    /* =========================================================
+       APP SHELL
+    ========================================================== */
+
+    .app-shell {
+      position: relative;
+
+      width: 100%;
+      height: 100dvh;
+      min-height: 100vh;
+
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+
+      overflow: hidden;
+    }
+
+    .app-frame {
+      position: relative;
+
+      width: 100%;
+      height: 100%;
+
+      overflow: hidden;
+
+      background: var(--app-bg);
+    }
+
+    /* Desktop / Laptop */
+
+    @media (min-width: 900px) {
+      .app-frame {
+        width: min(100%, 1440px);
+
+        height: calc(100dvh - 24px);
+        min-height: calc(100vh - 24px);
+
+        margin: 12px;
+
+        border-radius: 22px;
+
+        overflow: hidden;
+
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.30),
+          0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    /* =========================================================
+       IFRAME
+    ========================================================== */
+
+    #app {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      border: none;
+
+      background: var(--app-bg);
+    }
+
+    /* =========================================================
+       LOADING SCREEN
+    ========================================================== */
+
+    .loader {
+      position: absolute;
+      inset: 0;
+
+      z-index: 100;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+
+      background:
+        radial-gradient(
+          circle at 50% 20%,
+          #243B68 0%,
+          #0B1327 68%
+        );
+
+      transition:
+        opacity .25s ease,
+        visibility .25s ease;
+    }
+
+    .loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-card {
+      width: min(92vw, 380px);
+
+      padding: 32px 24px;
+
+      text-align: center;
+
+      color: #FFFFFF;
+
+      background:
+        rgba(22, 39, 74, 0.84);
+
+      border:
+        1px solid rgba(255,255,255,.12);
+
+      border-radius: 24px;
+
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.30);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .loader-logo {
+      display: block;
+
+      width: 78px;
+      height: 78px;
+
+      object-fit: contain;
+
+      margin: 0 auto 16px;
+
+      padding: 8px;
+
+      border-radius: 20px;
+
+      background: rgba(255,255,255,.96);
+    }
+
+    /* Fallback kalau logo tidak ditemukan */
+
+    .loader-logo-fallback {
+      display: none;
+
+      width: 78px;
+      height: 78px;
+
+      align-items: center;
+      justify-content: center;
+
+      margin: 0 auto 16px;
+
+      border-radius: 20px;
+
+      color: var(--gold);
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--navy-700),
+          var(--navy-900)
+        );
+
+      font-size: 38px;
+      font-weight: 900;
+    }
+
+    .loader-title {
+      margin: 0;
+
+      font-size: 24px;
+      font-weight: 800;
+
+      letter-spacing: .4px;
+    }
+
+    .loader-subtitle {
+      margin: 8px 0 20px;
+
+      color: var(--muted);
+
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+
+      margin: 0 auto;
+
+      border:
+        3px solid rgba(255,255,255,.18);
+
+      border-top-color: var(--gold);
+
+      border-radius: 50%;
+
+      animation:
+        spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================================================
+       ERROR
+    ========================================================== */
+
+    .error-panel {
+      position: absolute;
+      inset: 0;
+
+      z-index: 200;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 24px;
+
+      background:
+        radial-gradient(
+          circle at 50% 20%,
+          #243B68 0%,
+          #0B1327 68%
+        );
+    }
+
+    .error-panel.show {
+      display: flex;
+    }
+
+    .error-card {
+      width: min(92vw, 520px);
+
+      padding: 32px 24px;
+
+      text-align: center;
+
+      color: #FFFFFF;
+
+      background:
+        rgba(22,39,74,.90);
+
+      border:
+        1px solid rgba(255,255,255,.12);
+
+      border-radius: 24px;
+
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.3);
+    }
+
+    .error-icon {
+      margin-bottom: 12px;
+
+      font-size: 42px;
+    }
+
+    .error-title {
+      margin: 0 0 8px;
+
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .error-text {
+      max-width: 420px;
+
+      margin:
+        0 auto 20px;
+
+      color: var(--muted);
+
+      line-height: 1.55;
+
+      font-size: 14px;
+    }
+
+    .retry-btn {
+      appearance: none;
+
+      border: none;
+
+      border-radius: 999px;
+
+      padding:
+        12px 24px;
+
+      cursor: pointer;
+
+      color: #241A00;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold),
+          var(--gold-dark)
+        );
+
+      font: inherit;
+      font-weight: 800;
+
+      box-shadow:
+        0 8px 24px
+        rgba(228,183,63,.25);
+    }
+
+    .retry-btn:active {
+      transform: scale(.97);
+    }
+
+    /* =========================================================
+       MOBILE OPTIMIZATION
+    ========================================================== */
+
+    @media (max-width: 480px) {
+
+      .app-frame {
+        border-radius: 0;
+      }
+
+      .loader-card,
+      .error-card {
+        border-radius: 20px;
+      }
+    }
+
+    /* Landscape HP */
+
+    @media
+      (max-width: 900px)
+      and (orientation: landscape) {
+
+      .loader-card {
+        transform: scale(.86);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="app-shell">
+
+    <section
+      class="app-frame"
+      aria-label="QWAR Web App"
+    >
+
+      <!-- =====================================================
+           LOADING SCREEN
+      ====================================================== -->
+
+      <div
+        class="loader"
+        id="loader"
+        aria-live="polite"
+      >
+
+        <div class="loader-card">
+
+          <img
+            id="loader-logo"
+            class="loader-logo"
+            src="assets/qwar-logo.png"
+            alt="Logo QWAR"
+            onerror="handleLogoError()"
+          >
+
+          <div
+            id="loader-logo-fallback"
+            class="loader-logo-fallback"
+            aria-hidden="true"
+          >
+            ⚡
+          </div>
+
+          <h1 class="loader-title">
+            QWAR
+          </h1>
+
+          <p class="loader-subtitle">
+            Siapa cepat, dia bertanya.<br>
+            Memuat aplikasi...
+          </p>
+
+          <div
+            class="spinner"
+            aria-hidden="true"
+          ></div>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================================
+           ERROR SCREEN
+      ====================================================== -->
+
+      <div
+        class="error-panel"
+        id="error-panel"
+        role="alert"
+      >
+
+        <div class="error-card">
+
+          <div class="error-icon">
+            ⚠️
+          </div>
+
+          <h2 class="error-title">
+            QWAR tidak dapat dimuat
+          </h2>
+
+          <p class="error-text">
+            Web App Google Apps Script belum berhasil dimuat.
+            Periksa koneksi internet atau deployment Web App
+            Anda, kemudian coba lagi.
+          </p>
+
+          <button
+            class="retry-btn"
+            type="button"
+            onclick="reloadApp()"
+          >
+            Muat Ulang
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- =====================================================
+           GOOGLE APPS SCRIPT
+      ====================================================== -->
+
+      <iframe
+        id="app"
+
+        title="QWAR — Siapa Cepat, Dia Bertanya"
+
+        src="https://script.google.com/macros/s/AKfycbzld9Fw7F4ZIfrQKRxyUKP5S2CIDXFKSTqyaEA5BWtqQRaQ2rOaiPSpN26JCVePOW1nLA/exec"
+
+        loading="eager"
+
+        allow="
+          camera;
+          microphone;
+          fullscreen;
+          clipboard-read;
+          clipboard-write
+        "
+
+        allowfullscreen
+
+        referrerpolicy="strict-origin-when-cross-origin"
+
+        scrolling="auto"
+      ></iframe>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    /* =========================================================
+       ELEMENTS
+    ========================================================== */
+
+    const appFrame =
+      document.getElementById('app');
+
+    const loader =
+      document.getElementById('loader');
+
+    const errorPanel =
+      document.getElementById('error-panel');
+
+
+    let loadTimer = null;
+
+
+    /* =========================================================
+       LOADING
+    ========================================================== */
+
+    function hideLoader() {
+
+      clearTimeout(loadTimer);
+
+      loader.classList.add('hidden');
+    }
+
+
+    /* =========================================================
+       ERROR
+    ========================================================== */
+
+    function showError() {
+
+      clearTimeout(loadTimer);
+
+      loader.classList.add('hidden');
+
+      errorPanel.classList.add('show');
+    }
+
+
+    /* =========================================================
+       RETRY
+    ========================================================== */
+
+    function reloadApp() {
+
+      errorPanel.classList.remove('show');
+
+      loader.classList.remove('hidden');
+
+      const baseUrl =
+        appFrame.src.split('#')[0];
+
+      const separator =
+        baseUrl.includes('?')
+          ? '&'
+          : '?';
+
+      appFrame.src =
+        baseUrl +
+        separator +
+        '_reload=' +
+        Date.now();
+
+      loadTimer =
+        setTimeout(showError, 20000);
+    }
+
+
+    /* =========================================================
+       LOGO FALLBACK
+    ========================================================== */
+
+    function handleLogoError() {
+
+      const logo =
+        document.getElementById(
+          'loader-logo'
+        );
+
+      const fallback =
+        document.getElementById(
+          'loader-logo-fallback'
+        );
+
+      if (logo) {
+        logo.style.display = 'none';
+      }
+
+      if (fallback) {
+        fallback.style.display = 'flex';
+      }
+    }
+
+
+    /* =========================================================
+       IFRAME LOADED
+    ========================================================== */
+
+    appFrame.addEventListener(
+      'load',
+      function () {
+
+        hideLoader();
+
+      }
+    );
+
+
+    /* =========================================================
+       IFRAME ERROR
+    ========================================================== */
+
+    appFrame.addEventListener(
+      'error',
+      function () {
+
+        showError();
+
+      }
+    );
+
+
+    /* =========================================================
+       INITIAL TIMEOUT
+
+       GAS kadang membutuhkan waktu lebih lama karena
+       cold start. Jadi kita beri waktu cukup panjang.
+    ========================================================== */
+
+    loadTimer =
+      setTimeout(showError, 20000);
+
+
+    /* =========================================================
+       SESSION PARAMETER FORWARDING
+
+       Contoh URL:
+
+       https://username.github.io/qwar/?session=QW7K29
+
+       otomatis diteruskan menjadi:
+
+       https://script.google.com/.../exec?session=QW7K29
+    ========================================================== */
+
+    (function forwardSessionParameter() {
+
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const session =
+        params.get('session');
+
+      if (!session) {
+        return;
+      }
+
+      const cleanSession =
+        session
+          .trim()
+          .toUpperCase()
+          .slice(0, 20);
+
+      const gasUrl =
+        appFrame.src.split('?')[0];
+
+      appFrame.src =
+        gasUrl +
+        '?session=' +
+        encodeURIComponent(cleanSession);
+
+    })();
+
+  </script>
+
+</body>
+</html>
